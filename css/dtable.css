@@ -1,0 +1,39 @@
+
+.table {
+	margin:0;
+	padding:0;
+	box-sizing:border-box;
+	-moz-box-sizing: border-box;
+	width:100%;
+	min-width:100%;
+	max-width:100%;
+	overflow:scroll;
+}
+
+.table thead td {
+	box-sizing:border-box;
+	-moz-box-sizing: border-box;
+	margin:0;
+	padding: 4px;
+	text-align: center;
+	color: #7f7f7f;
+	font-weight: bold;
+}
+
+.table tbody td {
+	box-sizing:border-box;
+	-moz-box-sizing: border-box;
+	margin:0;
+	padding: 4px;
+	color: #4f4f4f;
+	text-align: left;
+	font-weight: normal;
+}
+
+.table tbody td {
+	border-right: 1px solid #dfdfdf;
+}
+
+.table tbody tr:nth-child(odd) {
+	background-color:#efffff;
+}

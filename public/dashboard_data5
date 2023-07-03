@@ -1,0 +1,77 @@
+﻿{
+  "parameters" : {
+    "language" : "ru",
+    "timeDelim" : ":",
+    "dateDelim" : ".",
+    "chatPort" : "9000",
+    "apiPort" : "8080",
+    "dateFormat" : "",
+    "uploadTime" : 1662725136 
+  },
+  "Project" : {
+    "Code" : "barchart",
+    "Version" : 1,
+    "Name" : "Project 2",
+    "CurTime" : 1662969600 
+  },
+  "DashPages" : [
+    {
+      "Name" : "Page 1",
+      "DashItems" : [
+        {
+          "Position" : [0, 0, 100, 100],
+          "Title" : "Фаза \"Project 2\" (код: Project2) Структура \"Structure Main\" (код: struct_main)",
+          "Type" : "diagram",
+          "SubType" : "graphs",
+          "Form" : "barchart",
+          "FromZero" : "yes",
+          "Decimals" : 2,
+          "Graphs" : [
+            {
+              "Name" : "Общая стоимость",
+              "Color" : "#00C000",
+              "f_ColorInc" : "#FF0000",
+              "f_RowColor" : "#00FF00",
+              "Array" : [
+                [1662940800, 15],
+                [1663027200, 15],
+                [1663113600, 15],
+                [1663200000, 15],
+                [1663286400, 15],
+                [1663372800, 0] 
+              ] 
+            },
+            {
+              "Name" : "Длительность, Часы",
+              "Color" : "#0000C0",
+              "f_ColorInc" : "#FF0000",
+              "f_RowColor" : "#00FF00",
+              "Array" : [
+                [1662940800, 8],
+                [1663027200, 8],
+                [1663113600, 8],
+                [1663200000, 8],
+                [1663286400, 8],
+                [1663372800, 0] 
+              ] 
+            },
+            {
+              "Name" : "Объём",
+              "Color" : "#C000C0",
+              "f_ColorInc" : "#FF0000",
+              "f_RowColor" : "#00FF00",
+              "Array" : [
+                [1662940800, 20],
+                [1663027200, 20],
+                [1663113600, 20],
+                [1663200000, 20],
+                [1663286400, 20],
+                [1663372800, 0] 
+              ] 
+            } 
+          ] 
+        } 
+      ] 
+    } 
+  ] 
+}

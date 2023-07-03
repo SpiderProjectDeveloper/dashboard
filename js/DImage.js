@@ -15,9 +15,9 @@ class DImage extends React.Component {
 	render() {
 		//let divStyle = { minWidth: this.props.width, maxWidth: this.props.width };
 		let imgStyle = { 
-			width: this.props.width, height: this.props.height - Settings.windowTitleHeight, 
-			left:0, top: Settings.windowTitleHeight+'px' };
-        let url = Settings.imagesDirectory + this.props.image.fileName;
+			width: this.props.width + 'px', height: (this.props.height - Settings.windowTitleHeight)+'px', 
+			left:'0px', top: Settings.windowTitleHeight+'px' };
+    let url = Settings.imagesDirectory + this.props.image.fileName;
 		return (
 			<img src={url} style={imgStyle} draggable={false} />
 		);

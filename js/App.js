@@ -5,23 +5,25 @@ import DWindow from './DWindow';
 import { convertSourceData, calcChartWindowsCoords, tileChartWindowsCoords, getCookie, setCookie } from './helpers'
 import Settings from './Settings';
 
-class App extends React.Component {
-	constructor(props) {
+class App extends React.Component 
+{
+	constructor(props) 
+	{
 		super(props);
 		this.state = { 
 			data: { 'error': '...'},
 			childZIndexes: [],
 			childRefs: [],
 			lang: 'en',
-            userName: String.fromCharCode(8230),
-            userLogin: String.fromCharCode(8230),
+			userName: String.fromCharCode(8230),
+			userLogin: String.fromCharCode(8230),
 			title: String.fromCharCode(8230),
 			projectVersion: String.fromCharCode(8230),
 			projectTime: String.fromCharCode(8230),
 		};
 		this.windowsPositioningMode = 1;
 		this.innerWidth = window.innerWidth;
-        this.innerHeight = window.innerHeight;
+    this.innerHeight = window.innerHeight;
 
 		this.changeLang = this.changeLang.bind(this);
 		this.positionWindows = this.positionWindows.bind(this);
@@ -32,11 +34,13 @@ class App extends React.Component {
 		window.addEventListener('resize', this.onResize );
 	}
 
-	printPage() {
+	printPage() 
+	{
 		window.print();		
 	}
 
-	positionWindows( mode=null ) {
+	positionWindows( mode=null ) 
+	{
 		if( this.state.data === null || !('charts' in this.state.data) || this.state.data.charts.length === 0 ) {
 			return;
 		}
@@ -68,7 +72,8 @@ class App extends React.Component {
 		}
 	}
 
-	changeLang( e ) {
+	changeLang( e ) 
+	{
 		for( let i = 0 ; i < Settings.langs.length ; i++ ) {
 			if( Settings.langs[i] === this.state.lang ) {
 				let lang = ( i < Settings.langs.length-1 ) ? Settings.langs[i+1] : Settings.langs[0];  		
@@ -79,7 +84,8 @@ class App extends React.Component {
 		}
 	}
 
-	bringFront(indexOfClicked) {
+	bringFront(indexOfClicked) 
+	{
 		let l = this.state.childZIndexes.length;
 		let z = new Array(l);
 		let indexOfMaxZ = 0;
@@ -100,7 +106,8 @@ class App extends React.Component {
 		this.setState( { childZIndexes:z } );
 	}
 
-	onResize(e) {
+	onResize(e) 
+	{
 		var resizeTimer = null;
 		if(resizeTimer) clearTimeout(resizeTimer);
 		resizeTimer = setTimeout( function() {
@@ -110,67 +117,28 @@ class App extends React.Component {
 			}.bind(this), 100 );
 	}	  
 
-	componentDidMount() {
-        if( Settings.isPhpAuth ) {   // A "_userName" defined signals the app is running at an FTP
-            this.setState( {userName: Settings.phpAuthUserName } );
-        } else {    // Trying to get the lang setting from cookie
-            let lang = getCookie('lang');
-            if( lang !== null ) {
-                this.setState( { lang:lang } );
-            }		
-            let userLogin = getCookie('user');
-            if( userLogin !== null ) {
-                this.setState( {userLogin: userLogin } );
-            }
-        }
-        /**** A possible substitution for "fetch"
-		var xhttp = new XMLHttpRequest();
-		xhttp.onreadystatechange = function() {
-	    	if (xhttp.readyState == 4 ) {
-		    	if( xhttp.status == 200 ) {
-					let data=null;
-					let errorParsingStatusData = false;
-					try {
-						data = JSON.parse(xhttp.responseText);
-					} catch(e) {
-						errorParsingStatusData = true;
-                    }
-					if( !errorParsingStatusData ) {
-						data = convertSourceData(data);		
-						this.setState({ lang: data.lang, title: data.title, projectVersion: data.projectVersion, 
-							projectTime: data.projectTime, userName: (typeof(_userName) !== 'undefined') ? _userName : '?' });
-				
-						document.title=data.title; 
-						if( ('charts' in data) && data.charts.length > 0 ) {
-							let z = [];
-							let r = [];
-							for( let i = 0 ; i < data.charts.length ; i++ ) {
-								z.push( Settings.minChildWindowZIndex + i );
-								r.push( React.createRef() );
-							}
-                            this.setState( { data: data, childZIndexes: z, childRefs: r } );
-                            return;
-						}
-						this.setState( { data: { 'error': Settings.noDataText[data.lang] } } );
-        			} else {
-						this.setState( { data: { 'error': Settings.failedToLoadText[this.state.lang] } } );
-	        		}
-				} else {
-					this.setState( { data: { 'error': Settings.failedToLoadText[this.state.lang] } } );
-				}
-            } 
-	    }.bind(this);
-		xhttp.open( 'GET', Settings.htmlDirectory + Settings.dataFile, true );
-        xhttp.send();
-        ****/
+	componentDidMount() 
+	{
+		if( Settings.isPhpAuth ) {   // A "_userName" defined signals the app is running at an FTP
+				this.setState( {userName: Settings.phpAuthUserName } );
+		} else {    // Trying to get the lang setting from cookie
+			let lang = getCookie('lang');
+			if( lang !== null ) {
+					this.setState( { lang:lang } );
+			}		
+			let userLogin = getCookie('user');
+			if( userLogin !== null ) {
+					this.setState( {userLogin: userLogin } );
+			}
+		}
 		fetch(Settings.htmlDirectory + Settings.dataUrl).then(data=> data.json()).then( 
 			(data) => { 
 				data = convertSourceData(data);		
 				this.setState({ 
-                    lang: (typeof(data.lang) !== 'undefined') ? data.lang : this.state.lang,
-                    userName: (typeof(data.user) !== 'undefined') ? data.user : this.state.userName, 
-                    title: data.title, projectVersion: data.projectVersion, projectTime: data.projectTime
-                }); 
+					lang: (typeof(data.lang) !== 'undefined') ? data.lang : this.state.lang,
+					userName: (typeof(data.user) !== 'undefined') ? data.user : this.state.userName, 
+					title: data.title, projectVersion: data.projectVersion, projectTime: data.projectTime
+				}); 
 				
 				document.title=data.title; // Setting window title
 				
@@ -197,25 +165,26 @@ class App extends React.Component {
 				return;
 			}.bind(this)
 		);
-    }
+  }
 
-	render() {				
-        let headerUser;     // It depends whether is it run at an FTP or via the SP-server
-        if(Settings.isPhpAuth) {         // FTP and PHP Auth?
-            headerUser = 
-                <div className={styles.headerUser}>
-                    <a className={styles.headerUserNameA} href={Settings.exitURL}>{this.state.userName}</a><br/>
-                    <a className={styles.headerLogoutA} href={Settings.exitURL}>{Settings.exitText[this.state.lang]}</a>
-                </div>;
-        } else {        // otherwise it is the server - full user name and no logout button 
-            headerUser = 
-                <div className={styles.headerUser}>
-                    {this.state.userName}<br/>
-                    {this.state.userLogin}
-                </div>;
-        } 
+	render() 
+	{				
+		let headerUser;     // It depends whether is it run at an FTP or via the SP-server
+		if(Settings.isPhpAuth) {         // FTP and PHP Auth?
+				headerUser = 
+						<div className={styles.headerUser}>
+								<a className={styles.headerUserNameA} href={Settings.exitURL}>{this.state.userName}</a><br/>
+								<a className={styles.headerLogoutA} href={Settings.exitURL}>{Settings.exitText[this.state.lang]}</a>
+						</div>;
+		} else {        // otherwise it is the server - full user name and no logout button 
+				headerUser = 
+						<div className={styles.headerUser}>
+								{this.state.userName}<br/>
+								{this.state.userLogin}
+						</div>;
+		} 
 
-        let header = (		
+		let header = (		
 			<div className={styles.headerContainer}>
 				<div className={styles.headerControls}>
 					<span onClick={this.changeLang}>{ Settings.lang[ this.state.lang ] }</span>
@@ -247,7 +216,8 @@ class App extends React.Component {
 
 		let charts = [];
 		let nCharts = data.charts.length;
-		if( nCharts > 0 ) {
+		if( nCharts > 0 ) 
+		{
 			try {
 				let coords = new Array( nCharts );
 				for( let i = 0 ; i < nCharts ; i++ ) {
@@ -289,3 +259,46 @@ class App extends React.Component {
 }
 
 export default App;
+
+
+/**** A possible substitution for "fetch"
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() 
+	{
+		if (xhttp.readyState == 4 ) {
+			if( xhttp.status == 200 ) {
+			let data=null;
+			let errorParsingStatusData = false;
+			try {
+				data = JSON.parse(xhttp.responseText);
+			} catch(e) {
+				errorParsingStatusData = true;
+								}
+			if( !errorParsingStatusData ) {
+				data = convertSourceData(data);		
+				this.setState({ lang: data.lang, title: data.title, projectVersion: data.projectVersion, 
+					projectTime: data.projectTime, userName: (typeof(_userName) !== 'undefined') ? _userName : '?' });
+		
+				document.title=data.title; 
+				if( ('charts' in data) && data.charts.length > 0 ) {
+					let z = [];
+					let r = [];
+					for( let i = 0 ; i < data.charts.length ; i++ ) {
+						z.push( Settings.minChildWindowZIndex + i );
+						r.push( React.createRef() );
+					}
+												this.setState( { data: data, childZIndexes: z, childRefs: r } );
+												return;
+				}
+				this.setState( { data: { 'error': Settings.noDataText[data.lang] } } );
+					} else {
+				this.setState( { data: { 'error': Settings.failedToLoadText[this.state.lang] } } );
+					}
+		} else {
+			this.setState( { data: { 'error': Settings.failedToLoadText[this.state.lang] } } );
+		}
+				} 
+	}.bind(this);
+	xhttp.open( 'GET', Settings.htmlDirectory + Settings.dataFile, true );
+	xhttp.send();
+****/

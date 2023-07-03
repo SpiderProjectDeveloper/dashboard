@@ -9,7 +9,17 @@ module.exports = {
    },
    devServer: {
       inline: true,
-      port: 8001
+	  contentBase: path.join(__dirname, 'public'),
+      compress: true,
+      port: 9000,
+		setup(app) {
+			//app.get('/bundle.js', (req, res) => {
+			//	  res.sendFile(path.resolve(__dirname, 'dist/bundle.js'));
+			//});
+			app.get('/.dashboard_data', (req, res) => {
+			  res.sendFile(path.resolve(__dirname, 'public/dashboard_data'));
+			});
+     }
    },
    module: {
       rules: [

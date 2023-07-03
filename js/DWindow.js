@@ -40,7 +40,8 @@ class DWindow extends React.Component {
 		this.setState( { titleMouseOver: false } );
 	}
   
-	render() {				
+	render() 
+	{				
 		let chartHeight = this.state.height - this.state.titleHeight;
 		let chartJSX = null;
 		if( this.props.chart.settings.type === 'lineChart' ) {
@@ -130,11 +131,15 @@ class DWindow extends React.Component {
 			}
 		}
 
+		// Disable draggin for touch devices
+		let disableDragging =  (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0));
+
 		return (
 			<Rnd key={'win.'+this.props.chart.settings.id} className={styles.window} ref={c => { this.rnd = c; }} 
 				size = {{ width: this.state.width, maxWidth: this.state.width, height: this.state.height, maxHeight: this.state.height }} 
 			 	position = {{ x: this.state.x, y: this.state.y }} 
 				enableResizing = {{ bottomRight: true, topLeft: true }}
+				disableDragging = {disableDragging}
 				style = {{ zIndex: this.props.zIndex }}
 				onDragStart={ (e,d) => {
 					this.props.bringFront(this.props.index);

@@ -33,8 +33,7 @@ class DAreaChart extends React.Component {
 
 	render() {
 		let stt = this.props.chart.settings;
-        let data = this.props.chart.data;
-        const off = gradientOffset(data);
+    let data = this.props.chart.data;
 		let keys = Object.keys(this.props.chart.charts);
 		if( keys.length > 0 ) {
 			let charts = [];
@@ -54,13 +53,13 @@ class DAreaChart extends React.Component {
 				tickFormatter={xFormatter} /> );
 
 			let ydomain = calculateYDomain( data, null, (typeof(stt.xAxisKey) !== undefined) ? stt.xAxisKey : null );
-            if( typeof(stt.startYAtZero) !== 'undefined' && 
-                stt.startYAtZero && ydomain[0] > 0.0 && ydomain !== null ) 	// If refer min Y to zero... 
-                ydomain[0] = 0;				
-            let zeroReferenceLine = null;
-            if( ydomain[0] < 0.0 && ydomain[1] > 0.0 ) {
-                zeroReferenceLine = <ReferenceLine y={0} stroke='#af4f4f' />
-            }
+			if( typeof(stt.startYAtZero) !== 'undefined' && 
+					stt.startYAtZero && ydomain[0] > 0.0 && ydomain !== null ) 	// If refer min Y to zero... 
+					ydomain[0] = 0;				
+			let zeroReferenceLine = null;
+			if( ydomain[0] < 0.0 && ydomain[1] > 0.0 ) {
+					zeroReferenceLine = <ReferenceLine y={0} stroke='#af4f4f' />
+			}
 			let yFormatter = undefined;
 			if( stt.decimalPlacesAfterDotAtAxis !== undefined ) {
 				yFormatter = function(e) { return e.toFixed(stt.decimalPlacesAfterDotAtAxis); };
@@ -72,40 +71,47 @@ class DAreaChart extends React.Component {
 			charts.push( <Tooltip key={'tooltip'+stt.id}  labelFormatter={ xFormatter } /> );
 			charts.push( <Legend key={'legend'+stt.id}  style={{fontSize:Settings.legendFontSize+'px'}} /> );
 
-            for( let i in keys ) {
-                let k = keys[i];
-                if( ydomain[0] < 0.0 && typeof(this.props.chart.charts[k].negStroke) !== 'undefined' ) 
-                {
-                    charts.push(
-                        <defs key={'def.'+stt.id+'.'+i}>
-                        <linearGradient key={'lineGrad.'+stt.id+'.'+i} id="splitColor" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset={gradientOffset(this.props.chart.data, k)} 
-                                stopColor={this.props.chart.charts[k].stroke} stopOpacity={1}/>
-                            <stop offset={gradientOffset(this.props.chart.data, k)} 
-                                stopColor={this.props.chart.charts[k].negStroke} stopOpacity={1}/>
-                        </linearGradient>
-                        </defs>);
-                    charts.push(
-                        <Area key={'area.'+stt.id+'.'+i} type={stt.areaType} dataKey={k} stroke="#000" fill="url(#splitColor)" />);                   
-                } 
-                else {
-                    charts.push( <Area type={(typeof(stt.areaType) !== 'undefined') ? stt.areaType : "monotone"} 
-                        key={'area.'+stt.id+'.'+i} dataKey={k} 
-                        stroke={this.props.chart.charts[k].stroke} /> );
-                }        
-            }
+			for( let i in keys ) {
+				let k = keys[i];
+
+				if( ydomain[0] < 0.0 && typeof(this.props.chart.charts[k].negStroke) !== 'undefined' ) 
+				{
+					//console.log("this.props.chart.charts[k].stroke=", this.props.chart.charts[k].stroke);
+					//console.log('data=', data[k]);
+					charts.push(
+						<defs key={'def.'+stt.id+'.'+i}>
+							<linearGradient key={'lineGrad.'+stt.id+'.'+i} id={`splitColor${i}`} x1="0" y1="0" x2="0" y2="1">
+								<stop offset={gradientOffset(this.props.chart.data, k)} 
+									stopColor={this.props.chart.charts[k].stroke} stopOpacity={1}/>
+								<stop offset={gradientOffset(this.props.chart.data, k)} 
+									stopColor={this.props.chart.charts[k].negStroke} stopOpacity={1}/>
+							</linearGradient>
+						</defs>
+					);
+					charts.push(
+						<Area key={'area.'+stt.id+'.'+i} type={stt.areaType} dataKey={k} 
+							stroke="#000" fill={`url(#splitColor${i})`} />
+					);                   
+				} 
+				else {
+					//console.log('this.props.chart.charts[k].stroke=', this.props.chart.charts[k].stroke);
+					charts.push( <Area type={(typeof(stt.areaType) !== 'undefined') ? stt.areaType : "monotone"} 
+						key={'area.'+stt.id+'.'+i} dataKey={k} fill={this.props.chart.charts[k].stroke} /> );
+				}        
+			}
 			let referenceLine = ('referenceLine' in stt) ? 
-				(<ReferenceLine x={stt.referenceLine} stroke='#af4f4f' strokeDasharray={"2 4"} />) : null;
+				(<ReferenceLine key={'refline.'+stt.id} x={stt.referenceLine} 
+					stroke='#af4f4f' strokeDasharray={"2 4"} />) : null;
 			let margin = { top:10, left:30, right:0, bottom:30 };
-            let style= { fontSize:Settings.chartFontSize+'px', color: '#7f7f7f' };	
+    	let style= { fontSize:Settings.chartFontSize+'px', color: '#7f7f7f' };	
 
 			return (
-				<AreaChart key={'linechart.'+stt.id} width={this.props.width} height={this.props.height} 
+				<AreaChart key={'chart.'+stt.id} width={this.props.width} height={this.props.height} 
 				 data={this.props.chart.data} style={style} margin={margin}>
 					{charts}
 					{referenceLine}
-                    {zeroReferenceLine}
-        		</AreaChart>
+          {zeroReferenceLine}
+        </AreaChart>
 			);
 		} else {
 			return( <div>NO DATA</div> );

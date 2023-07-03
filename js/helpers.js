@@ -10,6 +10,7 @@ export function convertSourceData(sourceData) {
 	if( !('DashPages' in sourceData) ) {
 		return data;
 	}
+
 	for( let idashpage = 0 ; idashpage < sourceData.DashPages.length ; idashpage++ ) {
 		if( !('DashItems' in sourceData.DashPages[idashpage]) ) {
 			continue;
@@ -20,14 +21,48 @@ export function convertSourceData(sourceData) {
 			let chartsCharts = null;
 			let chartsData = null;
 			let d = dashitems[idashitem];
+
 			if( d.Type == 'diagram') {
+				// To know what to draw: a line chart or a bar chart
+				let lineChart = false, areaChart = false, barChart = false, isStacked = false;
+				if( d.SubType == 'graphs' ) {		
+					if( d.Form === 'line' ) {		// Drawing a line chart if it is a line
+						lineChart = true; 
+					} else if( d.Form === 'bar' ) {
+						if( d.Graphs.length === 1 ) {		// Drawing a bar chart 
+							areaChart = true;
+						} else if( d.Graphs.length === 2 ) {	
+							if( 'hidden' in d.Graphs[1] && d.Graphs[1].hidden !== 0 ) {
+								areaChart = true; 	// If one barchart must serve as a backgournd for another one 
+								let temp;
+								temp = d.Graphs[0];						// Switching the barcharts so that 
+								d.Graphs[0] = d.Graphs[1];		// the 2nd became the 1st and 
+								d.Graphs[1] = temp;						// serve as a background 
+								//d.Graphs[0].Name = 'background.barchart';	// Setting the name to make sure it is not duplicated 
+							} else {
+								lineChart = true;	// Drawing a line chart otherwise
+							}
+						}
+						else if( d.Graphs.length > 2 ) {
+							lineChart = true;		// If there are more than 2 barcharts - drawing line charts instead
+						} 
+					} else if( d.Form === 'barchart' ) {
+						barChart = true;
+					} else if( d.Form === 'stackedbarchart' ) {
+						barChart = true;
+						isStacked = true;
+					} 
+				}
+
 				// A line chart
-				if( d.SubType == 'graphs' && (d.Form === 'line' || (d.Form === 'bar' && d.Graphs.length > 1) ) ) {
+				if( lineChart ) 
+				{
 					chartsData = {};
 					chartsCharts = {};
 					let xAxisKey = 'x';
 					let yAxisKey = 'value';
-					chartsSettings = { id: idashpage*100+idashitem, page:idashpage, type: 'linePlot', title: d.Title, 
+					chartsSettings = { 
+						id: idashpage* 100+idashitem, page:idashpage, type: 'linePlot', title: d.Title, 
 						startYAtZero: ( typeof(d.FromZero) !== 'undefined' && d.FromZero == 'yes') ? true : false,
 						lineType: (d.Form === 'bar' && d.Graphs.length > 1) ? 'stepAfter' : undefined, 
 						referenceLine: sourceData.Project.CurTime,
@@ -35,42 +70,53 @@ export function convertSourceData(sourceData) {
 						xAxisType: ( typeof(d.XType) !== 'undefined') ? d.XType : 'date', 
 						decimalPlacesAfterDotAtAxis: (typeof(d.Decimals) !== 'undefined') ? d.Decimals : undefined,
 						xPct: d.Position[0], yPct: d.Position[1], 
-						widthPct: d.Position[2] - d.Position[0], heightPct: d.Position[3] - d.Position[1] };
-					for( let igraph = 0 ; igraph < d.Graphs.length ; igraph++ ) {
+						widthPct: d.Position[2] - d.Position[0], heightPct: d.Position[3] - d.Position[1] 
+					};
+					for( let igraph = 0 ; igraph < d.Graphs.length ; igraph++ ) 
+					{
 						let graph = d.Graphs[igraph];
 						chartsCharts[graph.Name] = { stroke: graph.Color };
 						chartsData[graph.Name] = [];
-						for( let i = 0 ; i < graph.Array.length ; i++ ) {
+						let iLast = graph.Array.length - 1;
+						for( let i = 0 ; i <= iLast ; i++ ) 
+						{
 							let toPush = {};
-							toPush[xAxisKey] = graph.Array[i][0];
-							toPush[yAxisKey] = graph.Array[i][1];
+							let x = graph.Array[i][0];
+							let y = graph.Array[i][1];
+							if( i === iLast && i > 0 ) {	// To fix the last zero y if found
+								if( y === 0 ) y = graph.Array[i-1][1];
+							}
+							toPush[xAxisKey] = (y !== null) ? x : null;
+							toPush[yAxisKey] = (y !== null) ? y : null;
 							chartsData[graph.Name].push( toPush );
 							//chartsData[graph.Name].push( { x: graph.Array[i][0], value: graph.Array[i][1] } );
 						}
 					}
 				} 
-				else if( d.SubType == 'graphs' && (d.Form == 'bar') ) {
+				else if( areaChart ) {
 					chartsData = {};
 					chartsCharts = {};
 					let xAxisKey = 'x';
-					chartsSettings = { id: idashpage*100+idashitem, page:idashpage, type: 'areaChart', title: d.Title, 
-    					startYAtZero: ( typeof(d.FromZero) !== 'undefined' && d.FromZero == 'yes') ? true : false, 
+					chartsSettings = { 
+						id: idashpage*100+idashitem, page:idashpage, type: 'areaChart', title: d.Title, 
+    				startYAtZero: ( typeof(d.FromZero) !== 'undefined' && d.FromZero == 'yes') ? true : false, 
 						areaType: 'stepAfter', 
 						referenceLine: sourceData.Project.CurTime,
 						xAxisKey: xAxisKey, xAxisType: ( typeof(d.XType) !== 'undefined') ? d.XType : 'date', 
 						decimalPlacesAfterDotAtAxis: (typeof(d.Decimals) !== 'undefined') ? d.Decimals : undefined,
 						xPct: d.Position[0], yPct: d.Position[1], 
-                        widthPct: d.Position[2] - d.Position[0], heightPct: d.Position[3] - d.Position[1]
-                    };
+            widthPct: d.Position[2] - d.Position[0], heightPct: d.Position[3] - d.Position[1]
+          };
+					chartsData = [];
 					for( let igraph = 0 ; igraph < d.Graphs.length ; igraph++ ) {
 						let graph = d.Graphs[igraph];
-                        chartsCharts[graph.Name] = { stroke: graph.Color };
-                        if( typeof(graph.NegColor) !== 'undefined') {
-                            chartsCharts[graph.Name].negStroke = graph.NegColor;
-                        } else {
-                            chartsCharts[graph.Name].negStroke = '#aa4444';
-                        }
-						chartsData = [];
+
+						chartsCharts[graph.Name] = { stroke: graph.Color };
+						if( typeof(graph.NegColor) !== 'undefined') {
+								chartsCharts[graph.Name].negStroke = graph.NegColor;
+						} else {
+								//chartsCharts[graph.Name].negStroke = graph.Color;
+						}
 						for( let i = 0 ; i < graph.Array.length ; i++ ) {
 							let toPush = {};
 							toPush[xAxisKey] = graph.Array[i][0];
@@ -80,6 +126,47 @@ export function convertSourceData(sourceData) {
 						}
 					}
 				} 
+				else if( barChart ) 
+				{
+					chartsData = {};
+					chartsCharts = {};
+					let xAxisKey = 'x';
+					chartsSettings = { 
+						id: idashpage*100+idashitem, page:idashpage, type: 'barChart', title: d.Title, 
+    				startYAtZero: ( typeof(d.FromZero) !== 'undefined' && d.FromZero == 'yes') ? true : false, 
+						referenceLine: sourceData.Project.CurTime,
+						xAxisKey: xAxisKey, xAxisType: ( typeof(d.XType) !== 'undefined') ? d.XType : 'date', 
+						decimalPlacesAfterDotAtAxis: (typeof(d.Decimals) !== 'undefined') ? d.Decimals : undefined,
+						xPct: d.Position[0], yPct: d.Position[1], 
+            widthPct: d.Position[2] - d.Position[0], heightPct: d.Position[3] - d.Position[1],
+						isStacked: isStacked
+          };
+					chartsData = [];
+					for( let igraph = 0 ; igraph < d.Graphs.length ; igraph++ ) {
+						let graph = d.Graphs[igraph];
+						if( typeof( graph.hidden ) !== 'undefined' && graph.hidden === 1 ) continue;
+						
+						chartsCharts[graph.Name] = { fill: graph.Color };
+						if( typeof(graph.NegColor) !== 'undefined') {
+								chartsCharts[graph.Name].negStroke = graph.NegColor;
+						} else {
+								//chartsCharts[graph.Name].negStroke = graph.Color;
+						}
+						if( igraph == 0 ) {
+							for( let i = 0 ; i < graph.Array.length ; i++ ) {
+								let toPush = {};
+								toPush[xAxisKey] = graph.Array[i][0];
+								toPush[graph.Name] = graph.Array[i][1];
+								//chartsData.push( { name: graph.Array[i][0], value: graph.Array[i][1] } );
+								chartsData.push( toPush );							
+							}
+						} else {
+							for( let i = 0 ; i < graph.Array.length ; i++ ) {
+								chartsData[i][graph.Name] = graph.Array[i][1];
+							}
+						}
+					}
+				}
 				else if( d.SubType == 'pie' ) { 	// later it should be checked for being a graph plot
 					chartsSettings = { id: idashpage*100+idashitem, page:idashpage, type: 'pieChart', title: d.Title, 
 						xPct: d.Position[0], yPct: d.Position[1], 
@@ -90,7 +177,7 @@ export function convertSourceData(sourceData) {
 					chartsData = [];
 					for( let i = 0 ; i < d.Graphs[0].Array.length ; i++ ) {
 						let item = d.Graphs[0].Array[i];
-						chartsData.push( { name:item[1], value: item[0] } );
+						chartsData.push( { name:item[1], value: round( item[0], d.Decimals) } );
 						chartsSettings.colors.push( item[2] );
 					}
 				} 
@@ -102,13 +189,13 @@ export function convertSourceData(sourceData) {
 						colors:[] };
 					if( !('Graphs' in d) )
 						continue;		
-					let value = Settings.valueText[ data.lang ];			
-					chartsCharts = {};
+					//let value = Settings.valueText[ data.lang ];			
+					//chartsCharts = {};
 					chartsCharts = { value: { stroke:'#cf7fef', name:'Indicators' } };
 					chartsData = [];
 					for( let i = 0 ; i < d.Graphs[0].Array.length ; i++ ) {
 						let item = d.Graphs[0].Array[i];
-						chartsData.push( { name:item[1], value: item[0] } );
+						chartsData.push( { name:item[1], value: round(item[0], d.Decimals) } );
 						chartsSettings.colors.push( item[2] );
 					}
 				} 
@@ -249,13 +336,25 @@ export function calculateYDomain( dataSource, marginFactor=0.1, excludeKey='name
 		}
 	}	
 	if( lowest !== null && highest !== null ) {
-		let margin = (highest - lowest) * marginFactor;
-		r[0] = lowest - margin;
+		let highestLessLowest = highest - lowest;
+		let margin = highestLessLowest * marginFactor;
+		if( highestLessLowest > 0.0 && lowest > 0.0 && lowest / highestLessLowest < 0.2 ) {
+			// Make the lowest equal to "0" anyway   
+			r[0] = 0.0;
+		} else {
+			r[0] = lowest - margin;
+		}
 		r[1] = highest + margin;
 	}
 	return r;
 };
 
+export function round( num, radix=0) {
+	if( typeof(radix) === 'undefined' || radix === null ) return num;
+  let epsilon = (num > 0) ? Number.EPSILON : -Number.EPSILON;
+  let mult = Math.pow( 10, radix );
+  return Math.round((num + epsilon) * mult) / mult;
+}
 
 var _windowInnerWidth = window.innerWidth;
 var _windowInnerHeight = window.innerHeight;
@@ -346,8 +445,8 @@ function tileChartWindowsCoordsHelper( charts, coords, pageNumber=null ) {
 			nCols = 4;
 		}
 	}
-	let width = Math.floor(100.0 / nCols) - 0.05;
-	let height = Math.floor(100.0 / nRows) - 0.05;
+	let width = Math.floor(100.0 / nCols); // - 0.05;
+	let height = Math.floor(100.0 / nRows); // - 0.05;
 	let ir=0, ic=0;
 	for( let i = 0 ; i < charts.length ; i++ ) {
 		if( 'page' in charts[i].settings ) {

@@ -11,16 +11,17 @@ class DLineChart extends React.Component {
 		};
 	}
 
-	render() {
+	render() 
+	{
 		let stt = this.props.chart.settings;
 		let keys = Object.keys(this.props.chart.charts);
 		if( keys.length > 0 ) {
 			let charts = [];
 			charts.push( <CartesianGrid key={'cgrid'+stt.id} strokeDasharray="3 3" /> );
-  			charts.push( <XAxis key={'xaxis'+stt.id} dataKey="name" style={{fontSize:'12px'}} /> ); 
+  		charts.push( <XAxis key={'xaxis'+stt.id} dataKey="name" style={{fontSize:'12px'}} /> ); 
 			let ydomain = calculateYDomain( this.props.chart.data );
 			charts.push( <YAxis key={'yaxis'+stt.id} domain={ydomain} style={{fontSize:'12px'}} /> );
-  			charts.push( <Tooltip key={'tooltip'+stt.id}  /> );
+  		charts.push( <Tooltip key={'tooltip'+stt.id}  /> );
 			charts.push( <Legend key={'legend'+stt.id}  style={{fontSize:'11px'}} /> );
 			for( let i in keys ) {
 				let k = keys[i];

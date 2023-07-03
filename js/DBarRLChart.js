@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid, Cell, ReferenceLine } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid, Cell, ReferenceLine, Text } from 'recharts';
 import { calculateYDomain } from './helpers'
 import Settings from './Settings';
+
 
 class DBarRLChart extends React.Component {
 	constructor(props) {
@@ -13,6 +14,14 @@ class DBarRLChart extends React.Component {
 	}
 
 	render() {
+		const YAxisLeftTick = ({ y, payload: { value } }) => {
+			return (
+				<Text x={0} y={y} textAnchor="start" verticalAnchor="middle" scaleToFit>
+					{value}
+				</Text>
+			);
+		};
+				
 		let stt = this.props.chart.settings;
 		let keys = Object.keys(this.props.chart.charts);
 		if( keys.length > 0 ) {
@@ -26,16 +35,20 @@ class DBarRLChart extends React.Component {
 			if( fontSize < 6 )
 				fontSize=6;
 			if( orientation === 'vertical' ) {
-				charts.push( <XAxis key={'xaxis.'+stt.id} domain={domain} type="number" style={{fontSize:Settings.axisFontSize+'px'}} /> );
-	  			charts.push( <YAxis key={'yaxis.'+stt.id} dataKey="name" type="category" axisLine={false} style={{fontSize:fontSize+'px'}} /> ); 
+				//charts.push( <XAxis key={'xaxis.'+stt.id} domain={domain} type="number" style={{fontSize:Settings.axisFontSize+'px'}} /> );
+				charts.push( <XAxis key={'xaxis.'+stt.id} hide axisLine={false} type="number" /> );
+	  		charts.push( <YAxis 
+					yAxisId={0} key={'yaxis.'+stt.id} dataKey="name" type="category" 
+					axisLine={false} style={{fontSize:fontSize+'px'}} 
+				/> );  
 				charts.push( <ReferenceLine key={'refline.'+stt.id} x={0} stroke={stt.referenceLineColor} /> );
 			} else {	
-	  			charts.push( <XAxis key={'xaxis.'+stt.id} dataKey="name" type="category" style={{fontSize:Settings.axisFontSize+'px'}} /> ); 
+	  		charts.push( <XAxis key={'xaxis.'+stt.id} dataKey="name" type="category" style={{fontSize:Settings.axisFontSize+'px'}} /> ); 
 				charts.push( <YAxis key={'yaxis.'+stt.id} domain={domain} type="number" style={{fontSize:fontSize+'px'}} /> );
 				charts.push( <ReferenceLine key={'refline.'+stt.id} y={0} stroke={stt.referenceLineColor} /> );
 			}
 			charts.push( <Tooltip key={'tooltip.'+stt.id} 
-			  	formatter = { (value, name, props) => { return [value, props.payload.name] } } 
+			  formatter = { (value, name, props) => { return [value, props.payload.name] } } 
 				labelFormatter = { () => { return null; } } /> );
 
 			let colorMapping = null;
@@ -46,15 +59,32 @@ class DBarRLChart extends React.Component {
 
 			for( let i in keys ) {
 				let k = keys[i];
-				charts.push( <Bar key={'bar.'+stt.id+'.'+i} dataKey={k} fill={this.props.chart.charts[k].fill}>{colorMapping}</Bar> );
+				charts.push( 
+					<Bar 
+						key={'bar.'+stt.id+'.'+i} 
+						dataKey={k} fill={this.props.chart.charts[k].fill}
+					>{colorMapping}
+					</Bar> 
+				);
 			}
+
+			if( orientation === 'vertical') {
+				charts.push( <YAxis 
+					orientation="right" yAxisId={1}
+					key={'yaxis.'+stt.id} dataKey="value" type="category" 
+					axisLine={false} tickLine={false}
+					tickFormatter={value => value.toLocaleString()}
+          mirror
+				/> );	
+			}			
+
 			let margin = { top:10, left:40, right:0, bottom:10 };
 			let style= { fontSize:Settings.chartFontSize+'px', color: '#7f7f7f' };	
 			return (
 				<BarChart layout={orientation} key={'chart.'+stt.id} width={this.props.width} 
-				 height={this.props.height} data={this.props.chart.data} 
-				 style={style} margin={margin}>
-					{charts}
+					height={this.props.height} data={this.props.chart.data} 
+					style={style} margin={margin}
+				>{charts}
 				</BarChart>
 			);
 		} else {

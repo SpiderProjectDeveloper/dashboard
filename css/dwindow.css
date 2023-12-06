@@ -11,8 +11,16 @@ div {
 	box-shadow: 0 2px 4px rgba(122,122,122,0.2);
 }
 
+.borderlessWindow {
+	padding: 1px;
+	border: 0px;
+	border-radius: 0px;
+	background-color: #ffffff;
+}
+
 .title {
 	position:absolute;
+	display: table;
 	overflow: hidden; /* Must be "hidden" to disaply wrapping onto lines below */
 	left:0; top:0;
 	font-size: 14px;
@@ -28,9 +36,10 @@ div {
 }
 
 .titleControls {
-	float: left;
+	/*float: left;*/
+	display: table-cell;
 	color: #7f7f7f;
-	background-color: #f7f7f7;
+	/*background-color: #f7f7f7;*/
 	margin: 0;
 	padding: 0;
 	font-weight: bold;
@@ -46,7 +55,8 @@ div {
 }
 
 .titleText {
-	float: left;
+	/*float: left;*/
+	display: table-cell;
 	margin: 0;
 	padding: 0px 0px 2px 0px;
 	overflow: ellipsis;

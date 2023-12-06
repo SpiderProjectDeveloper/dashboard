@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid, Cell, ReferenceLine, Text } from 'recharts';
 import { calculateYDomain } from './helpers'
-import Settings from './Settings';
+import { Settings } from './Settings';
 
 
 class DBarRLChart extends React.Component {

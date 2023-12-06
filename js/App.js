@@ -3,7 +3,8 @@ import React from 'react';
 import styles from './../css/app.css'; 
 import DWindow from './DWindow';
 import { convertSourceData, calcChartWindowsCoords, tileChartWindowsCoords, getCookie, setCookie } from './helpers'
-import Settings from './Settings';
+import { Settings, LayoutMode } from './Settings';
+import { closeProject } from './helpers';
 
 class App extends React.Component 
 {
@@ -11,7 +12,7 @@ class App extends React.Component
 	{
 		super(props);
 		this.state = { 
-			data: { 'error': '...'},
+			data: { 'error': '...' },
 			childZIndexes: [],
 			childRefs: [],
 			lang: 'en',
@@ -21,17 +22,24 @@ class App extends React.Component
 			projectVersion: String.fromCharCode(8230),
 			projectTime: String.fromCharCode(8230),
 		};
-		this.windowsPositioningMode = 1;
+		this.windowsPositioningMode = 
+			(window.innerWidth > Settings.lowResolutionWindowWidth && !Settings.isTouchScreenDevice) ? 
+				LayoutMode.Desktop : LayoutMode.Mobile; 
 		this.innerWidth = window.innerWidth;
     this.innerHeight = window.innerHeight;
-
 		this.changeLang = this.changeLang.bind(this);
 		this.positionWindows = this.positionWindows.bind(this);
 		this.bringFront = this.bringFront.bind(this);
 		this.printPage = this.printPage.bind(this);
 		this.onResize = this.onResize.bind(this);
+		this.getText = this.getText.bind(this);
 
-		window.addEventListener('resize', this.onResize );
+		window.addEventListener( 'resize', this.onResize );
+	}
+
+	getText( key ) 
+	{
+		return Settings[key][this.state.lang];
 	}
 
 	printPage() 
@@ -54,7 +62,7 @@ class App extends React.Component
 		for( let i = 0 ; i < l ; i++ ) {
 			coords[i] = {};
 		} 
-		if( this.windowsPositioningMode === 1 && !(this.innerWidth < Settings.lowResolutionWindowWidth) ) { 
+		if( mode === LayoutMode.Desktop ) { 
 			calcChartWindowsCoords( this.state.data.charts, coords, this.innerWidth, this.innerHeight );
 		} else {
 			tileChartWindowsCoords( this.state.data.charts, coords, this.innerWidth, this.innerHeight );
@@ -67,15 +75,18 @@ class App extends React.Component
 			}
 			this.state.childRefs[i].current.setWindowCoords( coords[i].x, coords[i].y, coords[i].width, coords[i].height );
 		}
-		if( mode == 1 ) {
+		if( mode == LayoutMode.Desktop ) {
 			this.setState( { childZIndexes:z } );
 		}
+		Settings.layoutMode = mode;
 	}
 
 	changeLang( e ) 
 	{
-		for( let i = 0 ; i < Settings.langs.length ; i++ ) {
-			if( Settings.langs[i] === this.state.lang ) {
+		for( let i = 0 ; i < Settings.langs.length ; i++ ) 
+		{
+			if( Settings.langs[i] === this.state.lang ) 
+			{
 				let lang = ( i < Settings.langs.length-1 ) ? Settings.langs[i+1] : Settings.langs[0];  		
 				this.setState( { lang: lang } );
 				setCookie( 'lang', lang );
@@ -133,7 +144,7 @@ class App extends React.Component
 		}
 		fetch(Settings.htmlDirectory + Settings.dataUrl).then(data=> data.json()).then( 
 			(data) => { 
-				data = convertSourceData(data);		
+				data = convertSourceData(data, this.getText);		
 				this.setState({ 
 					lang: (typeof(data.lang) !== 'undefined') ? data.lang : this.state.lang,
 					userName: (typeof(data.user) !== 'undefined') ? data.user : this.state.userName, 
@@ -169,44 +180,50 @@ class App extends React.Component
 
 	render() 
 	{				
+		let lowRes = Settings.layoutMode === LayoutMode.Mobile; // !(this.innerWidth > Settings.lowResolutionWindowWidth);
 		let headerUser;     // It depends whether is it run at an FTP or via the SP-server
 		if(Settings.isPhpAuth) {         // FTP and PHP Auth?
 				headerUser = 
-						<div className={styles.headerUser}>
+						<div className={ (!lowRes) ? styles.headerUser : styles.lowResHeaderUser }>
 								<a className={styles.headerUserNameA} href={Settings.exitURL}>{this.state.userName}</a><br/>
 								<a className={styles.headerLogoutA} href={Settings.exitURL}>{Settings.exitText[this.state.lang]}</a>
 						</div>;
 		} else {        // otherwise it is the server - full user name and no logout button 
 				headerUser = 
-						<div className={styles.headerUser}>
-								{this.state.userName}<br/>
-								{this.state.userLogin}
+						<div className={ (!lowRes) ? styles.headerUser : styles.lowResHeaderUser }>
+								<div style= {{cursor: 'pointer'}} onClick = { () => { closeProject(); } }>{String.fromCharCode(0x2716)}</div>
+								<span>{this.state.userLogin}</span>
 						</div>;
 		} 
 
-		let header = (		
-			<div className={styles.headerContainer}>
-				<div className={styles.headerControls}>
-					<span onClick={this.changeLang}>{ Settings.lang[ this.state.lang ] }</span>
-					<span style={ { display:(this.innerWidth < Settings.lowResolutionWindowWidth) ? 'none':'inline' } }
-						onClick={ (e) => this.positionWindows(1) }>{ String.fromCharCode(8634) }</span>
-					<span style={ { display:(this.innerWidth < Settings.lowResolutionWindowWidth) ? 'none':'inline' } }
-						onClick={ (e) => this.positionWindows(2) }>{ String.fromCharCode(9783) }</span>
-					<span style={ { display:(this.innerWidth < Settings.lowResolutionWindowWidth) ? 'none':'inline', fontVariant:'small-caps' } }
+		/* <span onClick={this.changeLang}>{ Settings.lang[ this.state.lang ] }</span> */
+
+		let header = (
+			<div className={ (!lowRes) ? styles.headerContainer : styles.lowResHeaderContainer }>
+				<div className={(!lowRes) ? styles.headerControls : styles.lowResHeaderControls }>
+					<span 
+						style={ { display:(!lowRes) ? 'inline':'inline' } }
+						onClick={ (e) => this.positionWindows(LayoutMode.Desktop) }>{ String.fromCharCode(8634) }</span>
+					<span 
+						style={ { display:(!lowRes) ? 'inline':'inline' } }
+						onClick={ (e) => this.positionWindows(LayoutMode.Mobile) }>{ String.fromCharCode(0x2630) }</span>
+					<span 
+						style={ { display:(Settings.isTouchScreenDevice) ? 'inline':'none', fontVariant:'small-caps' } }
 						onClick={ (e) => this.printPage() }>P</span>
 				</div>
-				<div className={styles.headerTitle}>
+				<div className={ (!lowRes) ? styles.headerTitle : styles.lowResHeaderTitle }>
 					{ this.state.title }
-					<div className={styles.headerDetails}>
+					<div className={ (!lowRes) ? styles.headerDetails : styles.lowResHeaderDetails }>
 						{Settings.versionText[this.state.lang]} {this.state.projectVersion} :: {this.state.projectTime} 
 					</div>
 				</div>
-                {headerUser}
+          {headerUser}
 			</div>
 		);
 
 		let data = this.state.data;
-		if( 'error' in data ) {
+		if( 'error' in data ) 
+		{
 			return( 
 				<div className={styles.appContainer}>
 					{header}
@@ -223,19 +240,25 @@ class App extends React.Component
 				for( let i = 0 ; i < nCharts ; i++ ) {
 					coords[i] = {};
 				}
-				if( this.windowsPositioningMode === 1 && !(this.innerWidth < Settings.lowResolutionWindowWidth) ) { 
+				if( this.windowsPositioningMode === LayoutMode.Desktop ) 
+				{ 
 					calcChartWindowsCoords( data.charts, coords, this.innerWidth, this.innerHeight );
-				} else {
+				} else 
+				{
 					tileChartWindowsCoords( data.charts, coords, this.innerWidth, this.innerHeight );
 				}
 
 				for( let i = 0 ; i < nCharts ; i++ ) {
-					if( 'error' in coords[i] ) {
-						continue;
-					}
-					charts.push( <DWindow key={'chart.window.'+i} ref={this.state.childRefs[i]} 
-						index={i} zIndex={this.state.childZIndexes[i]} bringFront={this.bringFront}  
-						x={coords[i].x} y={coords[i].y} width={coords[i].width} height={coords[i].height} chart={data.charts[i]} /> );		
+					if( 'error' in coords[i] ) continue;
+					
+					charts.push( 
+						<DWindow 
+							key={'chart.window.'+i} ref={this.state.childRefs[i]}
+							index={i} zIndex={this.state.childZIndexes[i]} bringFront={this.bringFront}  
+							x={coords[i].x} y={coords[i].y} width={coords[i].width} height={coords[i].height} 
+							chart={data.charts[i]} 
+						/> 
+					);		
 				}
 				return (
 					<div className = {styles.appContainer}>

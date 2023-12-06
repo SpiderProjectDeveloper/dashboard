@@ -1,6 +1,8 @@
 ﻿import React, { PureComponent, Component } from 'react';
 import { PieChart, Pie, Legend, Tooltip, Sector, Cell } from 'recharts';
-import Settings from './Settings';
+import { Settings } from './Settings';
+import { PieChartLabel } from './PieChartLabel';
+import { formatNumberForOutput } from './helpers';
 
 /*
 { 
@@ -49,7 +51,8 @@ class DPieChart extends React.Component {
 		};
 	}
 
-	render() {
+	render() 
+	{
 		let stt = this.props.chart.settings;
 		let colorMapping = null;
 		let colors = this.props.chart.settings.colors;
@@ -95,14 +98,21 @@ class DPieChart extends React.Component {
 
 		let legend = <Legend key={'legend.'+stt.id} layout={layout} style={{fontSize:fontSize}}
 			wrapperStyle={wrapperStyle}		 
-			formatter={ (v,e,i) => { return `${e.payload.value} - ${v}`; } } />					
+			formatter={ (v,e,i) => { return `${formatNumberForOutput(e.payload.value)} - ${v}`; } } />					
 		let style= { fontSize:Settings.chartFontSize+'px', color: '#7f7f7f' };
 		return (
 			<PieChart key={'piechart.'+stt.id} style={style} width={this.props.width} height={this.props.height} >
 				{legend}
-				<Pie key={'pie.'+stt.id} data={this.props.chart.data} dataKey="value" 
-				 nameKey="name" cx={cx} cy={cy} isAnimationActive={false} 
-				 outerRadius={radius} fill={this.props.chart.settings.fill} label>
+				<Pie 
+					key={'pie.'+stt.id} 
+					data={this.props.chart.data} dataKey="value" 
+				 nameKey="name" 
+				 cx={cx} cy={cy} 
+				 isAnimationActive={false} 
+				 outerRadius={radius} 
+				 fill={this.props.chart.settings.fill} 
+				 label={PieChartLabel}
+				>
 					{colorMapping}
 				</Pie>
 				<Tooltip/>

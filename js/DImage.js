@@ -1,6 +1,6 @@
 ﻿import React, { Component } from 'react';
 //import styles from './../css/dimage.css'; 
-import Settings from './Settings';
+import { Settings } from './Settings';
 
 class DImage extends React.Component {
 	constructor(props) {

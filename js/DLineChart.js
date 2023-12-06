@@ -25,7 +25,7 @@ class DLineChart extends React.Component {
 			charts.push( <Legend key={'legend'+stt.id}  style={{fontSize:'11px'}} /> );
 			for( let i in keys ) {
 				let k = keys[i];
-				charts.push( <Line type="monotone" key={'line.'+stt.id+'.'+i} dataKey={k} 
+				charts.push( <Line type="linear" key={'line.'+stt.id+'.'+i} dataKey={k} 
 					stroke={this.props.chart.charts[k].stroke} /> );
 			}
 			let margin = { top:10, left:0, right:20, bottom:30 };

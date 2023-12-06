@@ -11,14 +11,21 @@ import DTable from './DTable';
 import DText from './DText';
 import DImage from './DImage';
 import styles from './../css/dwindow.css'; 
-import Settings from './Settings.js';
+import { Settings, LayoutMode } from './Settings.js';
+import DLackExceedingLinePlot from './DLackExceedingLinePlot';
+import DLackExceedingBarChart from './DLackExceedingBarChart';
 
-class DWindow extends React.Component {
+class DWindow extends React.Component 
+{
 	constructor(props) {
 		super(props);
 
 		this.state = {
-			x: this.props.x, y: this.props.y, width: this.props.width, height: this.props.height, chart: this.props.chart,
+			x: this.props.x, 
+			y: this.props.y, 
+			width: this.props.width, 
+			height: this.props.height, 
+			chart: this.props.chart,
 			fontSizeScale: 0,
 			titleMouseOver: false,
 			titleHeight: Settings.windowTitleHeight
@@ -42,38 +49,61 @@ class DWindow extends React.Component {
   
 	render() 
 	{				
+		let chartSettings = this.props.chart.settings;
+
 		let chartHeight = this.state.height - this.state.titleHeight;
 		let chartJSX = null;
-		if( this.props.chart.settings.type === 'lineChart' ) {
-			chartJSX = <DLineChart width={this.state.width} height={chartHeight} chart={this.props.chart} />;
+		if( chartSettings.type === 'lineChart' ) 
+		{
+			chartJSX = <DLineChart 
+				width={this.state.width} height={chartHeight} chart={this.props.chart} 
+			/>;
 		}
-		else if( this.props.chart.settings.type === 'linePlot' ) {
-			chartJSX = <DLinePlot width={this.state.width} height={chartHeight} chart={this.props.chart} />;
+		else if( chartSettings.type === 'lackExceedingLinePlot' ) 
+		{
+			chartJSX = <DLackExceedingLinePlot 
+				width={this.state.width} height={chartHeight} chart={this.props.chart} 
+			/>;
 		}
-		else if( this.props.chart.settings.type === 'barChart' ) {
-			chartJSX = <DBarChart width={this.state.width} height={chartHeight} chart={this.props.chart} />;
+		else if( chartSettings.type === 'linePlot' ) 
+		{
+			chartJSX = <DLinePlot 
+				width={this.state.width} height={chartHeight} chart={this.props.chart} 
+			/>;
 		}
-		else if( this.props.chart.settings.type === 'barRLChart' ) {
+		else if( chartSettings.type === 'barChart' ) 
+		{
+			chartJSX = <DBarChart 
+				width={this.state.width} height={chartHeight} chart={this.props.chart} 
+			/>;
+		}
+		else if( chartSettings.type === 'lackExceedingBarChart' ) 
+		{
+			chartJSX = <DLackExceedingBarChart 
+				width={this.state.width} height={chartHeight} chart={this.props.chart} 
+			/>;
+		}
+		else if( chartSettings.type === 'barRLChart' ) {
 			chartJSX = <DBarRLChart width={this.state.width} height={chartHeight} chart={this.props.chart} />;
 		}
-		else if( this.props.chart.settings.type === 'areaChart' ) {
+		else if( chartSettings.type === 'areaChart' ) {
 			chartJSX = <DAreaChart width={this.state.width} height={chartHeight} chart={this.props.chart} />;
 		}
-		else if( this.props.chart.settings.type === 'pieChart' ) {
+		else if( chartSettings.type === 'pieChart' ) {
 			chartJSX = <DPieChart width={this.state.width} height={chartHeight} chart={this.props.chart} />;
 		}
-		else if( this.props.chart.settings.type === 'dialGaugeChart' ) {
+		else if( chartSettings.type === 'dialGaugeChart' ) {
 			chartJSX = <DDialGaugeChart width={this.state.width} height={chartHeight} chart={this.props.chart} />;
 		}
 		else if( this.props.chart.settings.type === 'table' ) {
 			chartJSX = <DTable width={this.state.width} height={chartHeight} table={this.props.chart}
 				fontSizeScale={this.state.fontSizeScale} />;
 		}
-		else if( this.props.chart.settings.type === 'text' ) {
-			chartJSX = <DText width={this.state.width} height={chartHeight} text={this.props.chart}
+		else if( chartSettings.type === 'text' ) {
+			chartJSX = <DText width={this.state.width} height={this.state.height} text={this.props.chart}
 				fontSizeScale={this.state.fontSizeScale} />;
 		}
-		else if( this.props.chart.settings.type === 'image' ) {
+		else if( chartSettings.type === 'image' ) {
 			chartJSX = <DImage width={this.state.width} height={chartHeight} image={this.props.chart} />;
 		}
 		else {
@@ -81,7 +111,7 @@ class DWindow extends React.Component {
 		}
 
 		let controlsJSX=[];
-		if( this.props.chart.settings.type === 'table' || this.props.chart.settings.type === 'text' ) {
+		if( chartSettings.type === 'table' || chartSettings.type === 'text' ) {
 			controlsJSX.push( 
 				<span className={styles.control} key = {'title.plus.'+this.props.chart.settings.id} 
 					onClick={ (e) => { this.setState({ fontSizeScale: this.state.fontSizeScale+1 }); } }>
@@ -101,10 +131,12 @@ class DWindow extends React.Component {
 				{String.fromCharCode(8613)}</span>);
 
 		// Setting hide title property
+		let contentStyleHeight = ( this.props.chart.settings.type !== 'text' ) ?
+			(this.state.height - Settings.windowTitleHeight) : this.state.height;
 		let contentStyle = { 
 			top: this.state.titleHeight + 'px',
 			width: this.state.width+'px', 
-			height: (this.state.height - Settings.windowTitleHeight) + 'px' 
+			height: contentStyleHeight + 'px' 
 		};
 		let titleStyle = {};		
 		if( 'hideTitle' in this.props.chart.settings && this.props.chart.settings.hideTitle ) {
@@ -132,14 +164,19 @@ class DWindow extends React.Component {
 		}
 
 		// Disable draggin for touch devices
-		let disableDragging =  (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0));
-
+		let noDrag = (Settings.layoutMode === LayoutMode.Mobile); // (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0));
 		return (
-			<Rnd key={'win.'+this.props.chart.settings.id} className={styles.window} ref={c => { this.rnd = c; }} 
-				size = {{ width: this.state.width, maxWidth: this.state.width, height: this.state.height, maxHeight: this.state.height }} 
+			<Rnd 
+				key={'win.'+this.props.chart.settings.id} 
+				className={ (chartSettings.type !== 'text') ? styles.window : styles.borderlessWindow } 
+				ref={c => { this.rnd = c; }} 
+				size = {{ 
+					width: this.state.width, maxWidth: this.state.width, 
+					height: this.state.height, maxHeight: this.state.height 
+				}} 
 			 	position = {{ x: this.state.x, y: this.state.y }} 
 				enableResizing = {{ bottomRight: true, topLeft: true }}
-				disableDragging = {disableDragging}
+				disableDragging = {noDrag}
 				style = {{ zIndex: this.props.zIndex }}
 				onDragStart={ (e,d) => {
 					this.props.bringFront(this.props.index);
@@ -154,14 +191,22 @@ class DWindow extends React.Component {
 				onResizeStop={(e, d, ref, delta, position) => {
 					this.setState({ width: parseInt(ref.style.width), height: parseInt(ref.style.height), 
 						x:parseInt(position.x), y:parseInt(position.y) });
-				}} >
-				<div className={styles.title} style={titleStyle} 
-					onMouseOver={this.titleMouseOver} onMouseOut={this.titleMouseOut}>
-					<div className={styles.titleControls} style={{display:(this.state.titleMouseOver?'block':'none')}}>
+				}} 
+			>
+				{ this.props.chart.settings.type !== 'text' &&
+				<div 
+					className={styles.title} style={titleStyle} 
+					onMouseOver={this.titleMouseOver} onMouseOut={this.titleMouseOut}
+				>
+					<div className={styles.titleText}>{this.props.chart.settings.title}</div>
+					<div 
+						className={styles.titleControls} 
+						style={{display:(this.state.titleMouseOver?'table-cell':'none')}}
+					>
 						{controlsJSX}
 					</div>
-					<div className={styles.titleText}>{this.props.chart.settings.title}</div>
 				</div>
+				}
 				<div className={styles.content} style={contentStyle}>				
 					{chartJSX}
 				</div>

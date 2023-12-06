@@ -1,9 +1,12 @@
 import React, { Component } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ReferenceLine } from 'recharts';
+import { PeriodTooltip } from './PeriodTooltip';
 import { calculateXDomain, calculateYDomain, secondsToDate } from './helpers'
-import Settings from './Settings';
+import { Settings } from './Settings';
 
-function gradientOffset(data,key) {
+
+function gradientOffset(data,key) 
+{
     if( data.length == 0 || !(key in data[0]) )
         return 0;
     let dataMin=data[0][key], dataMax=data[0][key];
@@ -22,7 +25,8 @@ function gradientOffset(data,key) {
     }
   }
 
-class DAreaChart extends React.Component {
+class DAreaChart extends React.Component 
+{
 	constructor(props) {
 		super(props);
 
@@ -31,10 +35,14 @@ class DAreaChart extends React.Component {
 		};
 	}
 
-	render() {
+	render() 
+	{
 		let stt = this.props.chart.settings;
     let data = this.props.chart.data;
 		let keys = Object.keys(this.props.chart.charts);
+		let isTime = ( data.length > 1) ?
+			( ( (data[1].x - data[0].x) > 60*60*24 ) ? false : true ) : true;
+
 		if( keys.length > 0 ) {
 			let charts = [];
 			charts.push( <CartesianGrid key={'cgrid'+stt.id} strokeDasharray="3 3" /> );
@@ -44,7 +52,7 @@ class DAreaChart extends React.Component {
 				xdomain[0] = 0; 
 			let xFormatter = undefined;
 			if( typeof(stt.xAxisType) !== 'undefined' && stt.xAxisType === 'date' ) 	// If refer min Y to zero... 
-				xFormatter = function(e) { return secondsToDate(e); }; 			
+				xFormatter = function(e) { return secondsToDate(e, isTime); }; 			
 			let xAxisType = typeof((stt.xAxisType) === 'undefined' || stt.xAxisType === 'date' ) ?  'number' : stt.xAxisType; 
 			let xAxisKey = (typeof(stt.xAxisKey)!=='undefined') ? stt.xAxisKey : 'x';	
 			charts.push( <XAxis key={'xaxis'+stt.id} allowDuplicatedCategory={false} 
@@ -52,7 +60,8 @@ class DAreaChart extends React.Component {
 				domain={xdomain!==null ? xdomain: undefined} 
 				tickFormatter={xFormatter} /> );
 
-			let ydomain = calculateYDomain( data, null, (typeof(stt.xAxisKey) !== undefined) ? stt.xAxisKey : null );
+			let ydomain = calculateYDomain( data, 0.0, (typeof(stt.xAxisKey) !== undefined) ? stt.xAxisKey : null );
+			// console.log(ydomain);
 			if( typeof(stt.startYAtZero) !== 'undefined' && 
 					stt.startYAtZero && ydomain[0] > 0.0 && ydomain !== null ) 	// If refer min Y to zero... 
 					ydomain[0] = 0;				
@@ -81,33 +90,56 @@ class DAreaChart extends React.Component {
 					charts.push(
 						<defs key={'def.'+stt.id+'.'+i}>
 							<linearGradient key={'lineGrad.'+stt.id+'.'+i} id={`splitColor${i}`} x1="0" y1="0" x2="0" y2="1">
-								<stop offset={gradientOffset(this.props.chart.data, k)} 
+								<stop offset={gradientOffset(data, k)} 
 									stopColor={this.props.chart.charts[k].stroke} stopOpacity={1}/>
-								<stop offset={gradientOffset(this.props.chart.data, k)} 
+								<stop offset={gradientOffset(data, k)} 
 									stopColor={this.props.chart.charts[k].negStroke} stopOpacity={1}/>
 							</linearGradient>
 						</defs>
 					);
 					charts.push(
-						<Area key={'area.'+stt.id+'.'+i} type={stt.areaType} dataKey={k} 
-							stroke="#000" fill={`url(#splitColor${i})`} />
+						<Area 
+							key={'area.'+stt.id+'.'+i} type={stt.areaType} dataKey={k} 
+							stroke="#000" 
+							fill={`url(#splitColor${i})`} 
+						/>
 					);                   
 				} 
 				else {
-					//console.log('this.props.chart.charts[k].stroke=', this.props.chart.charts[k].stroke);
-					charts.push( <Area type={(typeof(stt.areaType) !== 'undefined') ? stt.areaType : "monotone"} 
-						key={'area.'+stt.id+'.'+i} dataKey={k} fill={this.props.chart.charts[k].stroke} /> );
+					charts.push( 
+						<Area 
+							type={(typeof(stt.areaType) !== 'undefined') ? stt.areaType : "monotone"} 
+							key={'area.'+stt.id+'.'+i} 
+							dataKey={k} 
+							stroke={this.props.chart.charts[k].stroke} 
+							fill={this.props.chart.charts[k].stroke} 
+							//fillOpacity={1}
+						/> );
 				}        
 			}
 			let referenceLine = ('referenceLine' in stt) ? 
 				(<ReferenceLine key={'refline.'+stt.id} x={stt.referenceLine} 
 					stroke='#af4f4f' strokeDasharray={"2 4"} />) : null;
+
+			let tooltip = 
+				<Tooltip 
+					key={'PeriodTooltip'} 
+					content={
+						<PeriodTooltip 
+							key={'PeriodTooltipContent'} 
+							toFixed={stt.decimalPlacesAfterDotAtAxis}
+							isTime={isTime}
+							data={data} />
+					} 
+				/>;
+
 			let margin = { top:10, left:30, right:0, bottom:30 };
     	let style= { fontSize:Settings.chartFontSize+'px', color: '#7f7f7f' };	
 
 			return (
 				<AreaChart key={'chart.'+stt.id} width={this.props.width} height={this.props.height} 
-				 data={this.props.chart.data} style={style} margin={margin}>
+				 data={data} style={style} margin={margin}>
+					tooltip={tooltip}
 					{charts}
 					{referenceLine}
           {zeroReferenceLine}

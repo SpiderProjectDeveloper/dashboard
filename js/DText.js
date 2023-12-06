@@ -13,15 +13,24 @@ class DText extends React.Component {
 	}
 
 	render() {
-		let style = { minWidth: this.props.width, maxWidth: this.props.width };
-		if( typeof( this.props.text.settings.fontSize ) !== 'undefined' ) {
-			style.fontSize = this.props.text.settings.fontSize + this.props.fontSizeScale + 'px';
+		let style = { 
+			minWidth: this.props.width, maxWidth: this.props.width, 
+			minHeight: this.props.height, maxHeight: this.props.height 
+		};
+		if( typeof( this.props.text.settings.font.size ) !== 'undefined' ) {
+			style.fontSize = this.props.text.settings.font.size + this.props.fontSizeScale + 'px';
 		}
 		else if( this.props.fontSizeScale != 0 ) {
-			style.fontSize = 100 + this.props.fontSizeScale*5 + '%';
+			style.fontSize = (100 + this.props.fontSizeScale*5).toString() + '%';
 		}
-		if( typeof( this.props.text.settings.fontFamily ) !== 'undefined' ) {
-			style.fontFamily = this.props.text.settings.fontFamily;
+		if( typeof( this.props.text.settings.font.family ) !== 'undefined' ) {
+			style.fontFamily = this.props.text.settings.font.family;
+		}
+		if( typeof( this.props.text.settings.font.weight ) !== 'undefined' ) {
+			style.fontWeight = this.props.text.settings.font.weight;
+		}
+		if( typeof( this.props.text.settings.font.italic ) !== 'undefined' ) {
+			style.fontStyle = (this.props.text.settings.font.italic === 1 ) ? 'italic' : 'normal';
 		}
 		return (
 			<div style={style} className={styles.container}>

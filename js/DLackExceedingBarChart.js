@@ -2,8 +2,9 @@ import React, { Component } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ReferenceLine } from 'recharts';
 import { PeriodTooltip } from './PeriodTooltip';
 import { calculateYDomain, secondsToDate } from './helpers'
+import { LackExceedingBarChartTooltip } from './LackExceedingBarChartTooltip';
 
-class DBarChart extends React.Component 
+class DLackExceedingBarChart extends React.Component 
 {
 	constructor(props) 
 	{
@@ -49,11 +50,12 @@ class DBarChart extends React.Component
 				let k = keys[i];
 				let barKey = 'bar.' + stt.id + '.' + i;
 				let barFill = this.props.chart.charts[k].fill;
-				if( stt.isStacked === false ) {
-					charts.push( <Bar key={barKey} dataKey={k} fill={barFill} /> );
-				} else {
-					charts.push( <Bar stackId='a' key={barKey} dataKey={k} fill={barFill} /> );
-				}
+				charts.push( 
+					<Bar 
+						stackId={this.props.chart.charts[k].stackId} 
+						key={barKey} dataKey={k} fill={barFill} 
+					/> 
+				);
 			}
 
 			if( typeof(stt.referenceLine) === 'number' ) {
@@ -65,11 +67,12 @@ class DBarChart extends React.Component
 			let tooltip = <Tooltip 
 							key={'PeriodTooltip'} 
 							content={
-								<PeriodTooltip 
+								<LackExceedingBarChartTooltip 
 									key={'PeriodTooltipContent'} 
 									toFixed={stt.decimalPlacesAfterDotAtAxis}
 									isTime={isTime}
 									endOfLastPeriod={stt.endOfLastPeriod}
+									customTooltips={stt.tooltips}
 									data={data} />
 							} 
 							cursor={{ fill: "#dfdfdf" }} />;
@@ -94,4 +97,4 @@ class DBarChart extends React.Component
 	}
 }
 
-export default DBarChart;
+export default DLackExceedingBarChart;

@@ -1,3 +1,4 @@
+
 function getScrollBarWidth() {
 	// Creating invisible container
 	const outer = document.createElement('div');
@@ -40,8 +41,14 @@ function phpAuthUserName() {
 	return (typeof(phpuser) !== 'undefined') ? phpuser : '';
 }
 
+export const LayoutMode = { Desktop: 1, Mobile: 2 }; 
 
-var Settings = {
+var isTouchScreen = ('ontouchstart' in window) || 
+	('maxTouchPoints' in navigator && navigator.maxTouchPoints > 0) || 
+	('msMaxTouchPoints' in navigator && navigator.msMaxTouchPoints > 0);
+
+export var Settings = 
+{
 	langs: ['en', 'ru' ],
 	lang: { en: 'EN', ru: 'РУ' },
 	exitText: { en: 'exit', ru:'выход' },
@@ -54,19 +61,24 @@ var Settings = {
 	chartFontSize: 12,
 	axisFontSize: 12,
 	legendFontSize: 11,
-	lowResolutionWindowWidth: 740,
+	lowResolutionWindowWidth: 980,
+	isTouchScreenDevice: isTouchScreen,
+	layoutMode: ( !(window.innerWidth < 980) && !isTouchScreen) ? LayoutMode.Desktop	: LayoutMode.Mobile,
 	dataFile: 'data.php',
 	dataUrl: (!isPhpAuth() ? '/.dashboard_data' + window.location.search : 'data.php'),
+	closeUrl: (!isPhpAuth() ? '/.close_project' + window.location.search : null),
 	htmlDirectory: '',
 	imagesDirectory: (!isPhpAuth() ? '/.get_image?' : 'files/'),
 	notAuthorizedText: { 'en': 'Not authorized', 'ru': 'Нет авторизации' },
 	waitLoadingText: { en: 'Please wait while loading data...', ru:'Пожалуйста, подождите, пока загружаются данные' },
 	failedToLoadText: { en: 'Failed to load data...', ru:'Ошибка при загрузке данных' },
 	failedToParseText: { en: 'Error while handling data. The data are incorrect?', ru:'Ошибка при обработке данных. Данные искажены?' },
+	lackText: { en: 'Lack', ru: 'Нехватка' },
+	exceedText: {en: 'Exceed', ru: 'Избыток' },
 	noDataText: { en: 'No data available', ru:'Нет данных' },
     minChildWindowZIndex: 1000,
     phpAuthUserName: phpAuthUserName(),
     isPhpAuth: isPhpAuth(),
 };
 
-export default Settings;
+//export default Settings;

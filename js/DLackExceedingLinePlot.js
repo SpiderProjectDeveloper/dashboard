@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ReferenceLine } from 'recharts';
-import { PlotTooltip } from './PlotTooltip';
-import { calculateXDomain, calculateYDomain, secondsToDate } from './helpers';
-import { Settings } from './Settings';
+import {  LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ReferenceLine } from 'recharts';
+import { calculateXDomain, calculateYDomain, secondsToDate } from './helpers'
+import { Settings } from './Settings'
+import { LackExceedingLinePlotTooltip } from './LackExceedingLinePlotTooltip';
 
-class DLinePlot extends React.Component 
+class DLackExceedingLinePlot extends React.Component 
 {
 	constructor(props) 
 	{
@@ -34,17 +34,22 @@ class DLinePlot extends React.Component
 		let isTime = false;
 
 		let xdomain = calculateXDomain( data, null, 'x' );
-		if( typeof(stt.startXAtZero) !== 'undefined' && stt.startXAtZero && xdomain !== null ) 	// If refer min Y to zero... 
+
+		// If refer min Y to zero... 
+		if( typeof(stt.startXAtZero) !== 'undefined' && stt.startXAtZero && xdomain !== null ) {
 			xdomain[0] = 0; 
+		}
 		let xFormatter = undefined;
-		if( typeof(stt.xAxisType) !== 'undefined' && stt.xAxisType === 'date' ) 	// If refer min Y to zero... 
+		// If refer min Y to zero... 
+		if( typeof(stt.xAxisType) !== 'undefined' && stt.xAxisType === 'date' ) {
 			xFormatter = function(e) { return secondsToDate(e, isTime); }; 			
+		}	
 		let xAxisType = typeof((stt.xAxisType) === 'undefined' || stt.xAxisType === 'date' ) ?  'number' : stt.xAxisType; 
-		let xAxisKey = (typeof(stt.xAxisKey)!=='undefined') ? stt.xAxisKey : 'x';	
+		let xAxisKey = 'x'; //(typeof(stt.xAxisKey)!=='undefined') ? stt.xAxisKey : 'x';	
 		charts.push( 
 			<XAxis key={'xaxis'+stt.id} allowDuplicatedCategory={false}
 				dataKey={xAxisKey} type={xAxisType} style={{fontSize: Settings.axisFontSize+'px'}} 
-				domain={xdomain!==null ? xdomain: undefined} 
+				domain={xdomain !== null ? xdomain: undefined} 
 				tickFormatter={xFormatter} /> 
 		);
 
@@ -56,17 +61,18 @@ class DLinePlot extends React.Component
 			yFormatter = function(e) { return e.toFixed(stt.decimalPlacesAfterDotAtAxis); };
 		}
 		charts.push( <YAxis key={'yaxis'+stt.id} style={{fontSize:Settings.axisFontSize+'px'}} 
+			dataKey={'y'}
 			domain={(ydomain!==null) ? ydomain : undefined }
 			tickFormatter={yFormatter} /> );
 
-		//charts.push( <Tooltip key={'tooltip'+stt.id}  labelFormatter={ xFormatter } /> );
-
 		charts.push( <Legend key={'legend'+stt.id}  style={{fontSize:Settings.legendFontSize+'px'}} /> );
+
 		for( let i in keys ) 
 		{
 			let k = keys[i];
 			let kdata = this.props.chart.data[k];
 			let kstroke = this.props.chart.charts[k].stroke;
+			let stepAfter = this.props.chart.charts[k].stepAfter;
 			/* For dedugging purposes 
 			for( let idata = 0 ; idata < kdata.length ; idata++ ) 
 			{
@@ -82,13 +88,16 @@ class DLinePlot extends React.Component
 			console.log(kdata);
 			*/
 			charts.push( 
-				<Line key={'line.'+stt.id+'.'+i} 
-					dataKey={(typeof(stt.yAxisKey)!=='undefined') ? stt.yAxisKey : 'value'}
-					type={(typeof(stt.lineType) !== 'undefined') ? stt.lineType : "linear"} 
+				<Line key={'lackExceedingLinePlot.'+stt.id+'.'+i} 
+					dataKey={'y'}
+					type={ (stepAfter) ? 'stepAfter' : "linear" }
 					name={k} 
 					dot={false}
 					data = {kdata} // data={this.props.chart.data[k]}
+					fill = {kstroke} //stroke={this.props.chart.charts[k].stroke}
 					stroke = {kstroke} //stroke={this.props.chart.charts[k].stroke}
+					strokeWidth = {3}
+					// strokeDasharray={ this.props.chart.charts[k].dashArray }
 				/> 
 			);
 		}
@@ -97,10 +106,10 @@ class DLinePlot extends React.Component
 
 			let tooltip = 
 			<Tooltip 
-				key={'PlotTooltip'} 
+				key={'lackExceedingLinePlotTooltip'} 
 				content={
-					<PlotTooltip 
-						key={'PlotTooltipContent'} 
+					<LackExceedingLinePlotTooltip 
+						key={'lackExceedingLinePlotTooltipContent'} 
 						toFixed={stt.decimalPlacesAfterDotAtAxis}
 						isTime={isTime}
 						data={this.props.chart.data} />
@@ -110,7 +119,11 @@ class DLinePlot extends React.Component
 		let margin = { top:10, left:30, right:0, bottom:30 };
 		let style= { fontSize:Settings.chartFontSize+'px', color: '#7f7f7f' };	
 		return (
-			<LineChart key={'linechart.'+stt.id} width={this.props.width} height={this.props.height} style={style} margin={margin}>
+			<LineChart 
+				key={'lackExceedingLinePlot.'+stt.id} 
+				width={this.props.width} height={this.props.height} 
+				style={style} margin={margin}
+			>
 				{tooltip}
 				{charts}
 				{referenceLine}
@@ -120,4 +133,4 @@ class DLinePlot extends React.Component
 	}
 }
 
-export default DLinePlot;
+export default DLackExceedingLinePlot;
